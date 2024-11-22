@@ -1,0 +1,434 @@
+class Dictionary {
+    public id: number;
+    public palabra: string;
+    public descripcion: string; 
+
+    constructor( id: number, palabra: string, descripcion: string) {
+        this.id = id; 
+        this.palabra = palabra;
+        this.descripcion = descripcion
+
+    }
+
+    public toString(): string {
+        return `ID: ${this.id}, Palabra: ${this.palabra}}, Descripcion: ${this.descripcion}`;
+    }
+}
+
+class NodeRBT {
+    private data: Dictionary;
+    private father!: NodeRBT;
+    private leftChild!: NodeRBT;
+    private rightChild!: NodeRBT;
+    private color: string;
+
+    constructor(data: Dictionary, isLeaf?: boolean) {
+        this.data = data;
+        this.color = "RED";
+        if (isLeaf) this.color = "BLACK";
+    }
+
+    public getData(): Dictionary {
+        return this.data;
+    }
+
+    public setFather(newFather: NodeRBT): void {
+        this.father = newFather;
+    }
+
+    public getFather(): NodeRBT {
+        return this.father;
+    }
+
+    public setLeftChild(newChild: NodeRBT): void {
+        this.leftChild = newChild;
+    }
+
+    public getLeftChild(): NodeRBT {
+        return this.leftChild;
+    }
+
+    public setRightChild(newChild: NodeRBT): void {
+        this.rightChild = newChild;
+    }
+
+    public getRightChild(): NodeRBT {
+        return this.rightChild;
+    }
+
+    public setNodeAsRed(): void {
+        this.color = "RED";
+    }
+
+    public setNodeAsBlack(): void {
+        this.color = "BLACK";
+    }
+
+    public getColor(): string {
+        return this.color;
+    }
+
+    public setColor(color: string): void {
+        this.color = color;
+    }
+}
+
+class RBTree {
+    private root: NodeRBT;
+    private leaf: NodeRBT;
+
+    constructor() {
+        this.leaf = new NodeRBT(new Dictionary(0,"",""), true);
+        this.root = this.leaf;
+    }
+
+    public insert(word: Dictionary): void {
+        let newNode: NodeRBT = new NodeRBT(word);
+        let parent: NodeRBT = this.leaf;
+        let current: NodeRBT = this.root;
+
+        newNode.setLeftChild(this.leaf);
+        newNode.setRightChild(this.leaf);
+
+        while (current !== this.leaf) {
+            parent = current;
+            if (newNode.getData().id < current.getData().id) {
+                current = current.getLeftChild();
+            } else {
+                current = current.getRightChild();
+            }
+        }
+
+        newNode.setFather(parent);
+
+        if (parent === this.leaf) {
+            this.root = newNode;
+        } else if (newNode.getData().id < parent.getData().id) {
+            parent.setLeftChild(newNode);
+        } else {
+            parent.setRightChild(newNode);
+        }
+
+        if (newNode.getFather() === this.leaf) {
+            newNode.setNodeAsBlack();
+            return;
+        }
+
+        if (newNode.getFather().getFather() === this.leaf) {
+            return;
+        }
+
+        this.fixInsert(newNode);
+    }
+
+    public search(id: number): NodeRBT | null {
+        let current = this.root;
+            while (current !== this.leaf) {
+                if (id === current.getData().id) {
+                    console.log("Palabra Encontrada:", current.getData().toString());
+                    return current; 
+        }
+        current = id < current.getData().id ? current.getLeftChild() : current.getRightChild();
+    }
+        console.log(`Palabra con ID ${id} NO Encontrado en el Arbol`);
+            return null;
+    }
+
+
+    /*test = "hola"
+    _letra = test.chatAt(set)                
+
+    if (test === current.getData().palabra) {
+                    console.log("Letra de la Palabra:", current.getData().toString());
+                    return current; 
+    */
+
+    /*public searchInRange(palabra: string): NodeRBT | null {
+        let current = this.root;
+        _letra = current.charAt(0)
+
+            while (current !== this.leaf) {
+                if (palabra === current.charAt(0)) {
+                    console.log("Palabra Encontrada:", current.getData().toString());
+                    return current; 
+        }
+        current = palabra < current.getData().palabra ? current.getLeftChild() : current.getRightChild();
+    }
+        console.log(`Palabras con esas letras ${palabra} NO Encontradas en el Arbol`);
+            return null;
+    }*/
+
+
+    //ROTACION A LA IZQUIERDA
+    private leftRotate(x: NodeRBT): void {
+        let y: NodeRBT = x.getRightChild();
+        x.setRightChild(y.getLeftChild());
+        if (y.getLeftChild() != this.leaf) y.getLeftChild().setFather(x);
+        y.setFather(x.getFather());
+        if (x.getFather() == this.leaf) {
+            this.root = y;
+        } else if (x === x.getFather().getLeftChild()) {
+            x.getFather().setLeftChild(y);
+        } else {
+            x.getFather().setRightChild(y);
+        }
+        y.setLeftChild(x);
+        x.setFather(y);
+    }
+
+    //ROTACION A LA DERECHA
+    private rightRotate(x: NodeRBT): void {
+        let y: NodeRBT = x.getLeftChild();
+        x.setLeftChild(y.getRightChild());
+        if (y.getRightChild() != this.leaf) y.getRightChild().setFather(x);
+        y.setFather(x.getFather());
+        if (x.getFather() == this.leaf) {
+            this.root = y;
+        } else if (x === x.getFather().getRightChild()) {
+            x.getFather().setRightChild(y);
+        } else {
+            x.getFather().setLeftChild(y);
+        }
+        y.setRightChild(x);
+        x.setFather(y);
+    }
+
+     private fixInsert(testNode: NodeRBT): void {
+        while (testNode !== this.root && testNode.getFather().getColor() == "RED") {
+            if (testNode.getFather() === testNode.getFather().getFather().getLeftChild()) {
+                let uncle: NodeRBT = testNode.getFather().getFather().getRightChild();
+                if (uncle.getColor() === "RED") {
+                    testNode.getFather().setNodeAsBlack();
+                    uncle.setNodeAsBlack();
+                    testNode.getFather().getFather().setNodeAsRed();
+                    testNode = testNode.getFather().getFather();
+                } else {
+                    if (testNode === testNode.getFather().getRightChild()) {
+                        testNode = testNode.getFather();
+                        this.leftRotate(testNode);
+                    }
+                    testNode.getFather().setNodeAsBlack();
+                    testNode.getFather().getFather().setNodeAsRed();
+                    this.rightRotate(testNode.getFather().getFather());
+                }
+            } else {
+                let uncle: NodeRBT = testNode.getFather().getFather().getLeftChild();
+                if (uncle.getColor() === "RED") {
+                    testNode.getFather().setNodeAsBlack();
+                    uncle.setNodeAsBlack();
+                    testNode.getFather().getFather().setNodeAsRed();
+                    testNode = testNode.getFather().getFather();
+                } else {
+                    if (testNode === testNode.getFather().getLeftChild()) {
+                        testNode = testNode.getFather();
+                        this.rightRotate(testNode);
+                    }
+                    testNode.getFather().setNodeAsBlack();
+                    testNode.getFather().getFather().setNodeAsRed();
+                    this.leftRotate(testNode.getFather().getFather());
+                }
+            }
+        }
+        this.root.setNodeAsBlack();
+    }
+
+    
+    public delete(id: number): void {
+        let nodeToDelete = this.search(id);
+        if (!nodeToDelete || nodeToDelete === this.leaf) { 
+            console.log(`Palabra con ID ${id} NO Enontrado en el Arbol`);
+            return;
+        }
+        this.deleteNode(nodeToDelete);
+        console.log(`Palabra con ID ${id} Eliminado del Arbol`);
+    }
+    
+
+    private deleteNode(node: NodeRBT): void {
+        let y = node;
+        let yOriginalColor = y.getColor();
+        let x: NodeRBT;
+
+        if (node.getLeftChild() === this.leaf) {
+            x = node.getRightChild();
+            this.transplant(node, node.getRightChild());
+        } else if (node.getRightChild() === this.leaf) {
+            x = node.getLeftChild();
+            this.transplant(node, node.getLeftChild());
+        } else {
+            y = this.minimum(node.getRightChild());
+            yOriginalColor = y.getColor();
+            x = y.getRightChild();
+            if (y.getFather() === node) {
+                x.setFather(y);
+            } else {
+                this.transplant(y, y.getRightChild());
+                y.setRightChild(node.getRightChild());
+                y.getRightChild().setFather(y);
+            }
+            this.transplant(node, y);
+            y.setLeftChild(node.getLeftChild());
+            y.getLeftChild().setFather(y);
+            y.setColor(node.getColor());
+        }
+
+        if (yOriginalColor === "BLACK") {
+            this.fixDelete(x);
+        }
+    }
+
+    private fixDelete(x: NodeRBT): void {
+        while (x !== this.root && x.getColor() === "BLACK") {
+            if (x === x.getFather().getLeftChild()) {
+                let sibling = x.getFather().getRightChild();
+                if (sibling.getColor() === "RED") {
+                    sibling.setNodeAsBlack();
+                    x.getFather().setNodeAsRed();
+                    this.leftRotate(x.getFather());
+                    sibling = x.getFather().getRightChild();
+                }
+                if (sibling.getLeftChild().getColor() === "BLACK" && sibling.getRightChild().getColor() === "BLACK") {
+                    sibling.setNodeAsRed();
+                    x = x.getFather();
+                } else {
+                    if (sibling.getRightChild().getColor() === "BLACK") {
+                        sibling.getLeftChild().setNodeAsBlack();
+                        sibling.setNodeAsRed();
+                        this.rightRotate(sibling);
+                        sibling = x.getFather().getRightChild();
+                    }
+                    sibling.setColor(x.getFather().getColor());
+                    x.getFather().setNodeAsBlack();
+                    sibling.getRightChild().setNodeAsBlack();
+                    this.leftRotate(x.getFather());
+                    x = this.root;
+                }
+            } else {
+                let sibling = x.getFather().getLeftChild();
+                if (sibling.getColor() === "RED") {
+                    sibling.setNodeAsBlack();
+                    x.getFather().setNodeAsRed();
+                    this.rightRotate(x.getFather());
+                    sibling = x.getFather().getLeftChild();
+                }
+                if (sibling.getRightChild().getColor() === "BLACK" && sibling.getLeftChild().getColor() === "BLACK") {
+                    sibling.setNodeAsRed();
+                    x = x.getFather();
+                } else {
+                    if (sibling.getLeftChild().getColor() === "BLACK") {
+                        sibling.getRightChild().setNodeAsBlack();
+                        sibling.setNodeAsRed();
+                        this.leftRotate(sibling);
+                        sibling = x.getFather().getLeftChild();
+                    }
+                    sibling.setColor(x.getFather().getColor());
+                    x.getFather().setNodeAsBlack();
+                    sibling.getLeftChild().setNodeAsBlack();
+                    this.rightRotate(x.getFather());
+                    x = this.root;
+                }
+            }
+        }
+        x.setNodeAsBlack();
+    }
+
+    private transplant(u: NodeRBT, v: NodeRBT): void {
+        if (u.getFather() === this.leaf) {
+            this.root = v;
+        } else if (u === u.getFather().getLeftChild()) {
+            u.getFather().setLeftChild(v);
+        } else {
+            u.getFather().setRightChild(v);
+        }
+        v.setFather(u.getFather());
+    }
+
+    private minimum(node: NodeRBT): NodeRBT {
+        while (node.getLeftChild() !== this.leaf) {
+            node = node.getLeftChild();
+        }
+        return node;
+    }
+
+    //RECORRIDO IN-ORDEN
+    private RecorridoInOrden(nodo: NodeRBT = this.root): void {
+        if (nodo !== this.leaf) {
+            this.RecorridoInOrden(nodo.getLeftChild());
+            console.log(`${nodo.getData().toString()} (${nodo.getColor()})`);
+            this.RecorridoInOrden(nodo.getRightChild());
+        }
+    }
+
+    public inOrder(): void {
+        this.RecorridoInOrden(this.root);
+    }
+
+}
+
+const wordTree = new RBTree();
+
+function addWord(id: number, palabra: string, descripcion: string) {
+    const word = new Dictionary(id, palabra, descripcion);
+    wordTree.insert(word);
+    console.log(`Palabra ${palabra} agregado al Arbol.`);
+}
+
+function findWord(id: number) {
+    wordTree.search(id);
+}
+
+function findRange(palabra: string){
+    wordTree.searchInRange(palabra)
+}
+
+console.log("\nPALABRAS INGRESADAS:")
+addWord(1,"arbol","planta");
+addWord(2,"abeja","insectp");
+addWord(3,"bosque","arboles");
+addWord(4,"casa","estructura")
+addWord(5,"caja","carton")
+
+console.log("\nPALABRAS A BUSCAR:");
+findWord(1);
+findWord(14);
+
+/*console.log("\nPALABRAS EN RANGO")
+findRange("a")*/
+
+console.log("\nPALABRAS ORDENADAS EN IN-ORDEN ANTES DE ELIMINAR");
+wordTree.inOrder();
+
+console.log("\nPALABRAS EN INORDEN DESPUES DE ELIMINAR");
+wordTree.inOrder();
+
+/*RANGO
+public searchInRange(letter: string): void {
+    const searchLetter = letter.toLowerCase();
+    this.inOrderRange(this.root, searchLetter);
+}
+
+private inOrderRange(node: NodeRBT, letter: string): void {
+    if (node !== this.leaf) {
+        this.inOrderRange(node.getLeftChild(), letter);
+        if (node.getData().palabra.toLowerCase().startsWith(letter)) {
+            console.log(`${node.getData().toString()} (${node.getColor()})`);
+        }
+        this.inOrderRange(node.getRightChild(), letter);
+    }
+}
+*/
+
+/*INORDEN DESCENDENTE
+private RecorridoInOrdenDescendente(node: NodeRBT = this.root): void {
+    if (node !== this.leaf) {
+        this.RecorridoInOrdenDescendente(node.getRightChild());
+        console.log(`${node.getData().toString()} (${node.getColor()})`);
+        this.RecorridoInOrdenDescendente(node.getLeftChild());
+    }
+}
+
+public inOrderDescending(): void {
+    this.RecorridoInOrdenDescendente(this.root);
+}
+*/
+

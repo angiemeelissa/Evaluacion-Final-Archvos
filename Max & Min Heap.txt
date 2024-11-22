@@ -1,0 +1,136 @@
+class Task {
+    constructor(public name: string, public priority: number) {}
+}
+
+class MinHeap {
+    private heap: Task[];
+    private n: number;
+
+    constructor(size: number) {
+        this.heap = new Array(size + 1);
+        this.n = 0;
+    }
+
+    //INSERTAR TAREAS
+    public insert(task: Task): void {
+        if (this.n == this.heap.length - 1) {
+            this.resize(2 * this.heap.length);
+        }
+        this.n++;
+        this.heap[this.n] = task;
+        this.bubbleUp(this.n);
+    }
+
+    //ORDENAR TAREAS HACIA ARRIBA
+    private bubbleUp(i: number): void {
+        let parent: number = Math.floor(i / 2);
+        while (i > 1 && this.heap[parent].priority > this.heap[i].priority) {
+            this.swap(i, parent);
+            i = parent;
+            parent = Math.floor(i / 2);
+        }
+    }
+
+    //INTERCAMBIAR DOS ELEMENTOS EN EL HEAP
+    private swap(i: number, j: number): void {
+        let temp = this.heap[i];
+        this.heap[i] = this.heap[j];
+        this.heap[j] = temp;
+    }
+
+    //REDIMENSIONAR EL HEAP
+    private resize(newSize: number): void {
+        let newHeap: Task[] = new Array(newSize);
+        for (let i = 1; i <= this.n; i++) {
+            newHeap[i] = this.heap[i];
+        }
+        this.heap = newHeap;
+    }
+
+    //TAREAS CON MENOS PRIORIDAD
+    public getMin(): Task {
+        let min = this.heap[1];
+        this.heap[1] = this.heap[this.n];
+        this.heap[this.n] = null!;
+        this.n--;
+        this.sink(1);
+        return min;
+    }
+
+    //RE ORGANIZAR EL HEAP
+    private sink(i: number): void {
+        while (2 * i <= this.n) {
+            let j = 2 * i;
+            if (j < this.n && this.heap[j].priority > this.heap[j + 1].priority) {
+                j++;
+            }
+            if (this.heap[i].priority <= this.heap[j].priority) {
+                break;
+            }
+            this.swap(i, j);
+            i = j;
+        }
+    }
+
+    //MOSTRAR TODAS LAS TAREAS
+    public print(): void {
+        let tree: string = "";
+        for (let i = 1; i <= this.n; i++) {
+            tree += `[${this.heap[i].name} - Prioridad: ${this.heap[i].priority}] `;
+        }
+        console.log(tree);
+    }
+
+    //OBTENER LA CANTIDAD DE TAREAS
+    public getQuantity(): number {
+        return this.n;
+    }
+
+    //METODO PARA VER SI EL HEAP ESTA VACIO 
+    public isEmpty(): boolean {
+        return this.n === 0;
+    }
+}
+
+let myMinHeap: MinHeap = new MinHeap(7);
+
+let tasks = [
+    new Task("Calificar Laboratorio 1", 1),
+    new Task("Reunirse con Facultad de Ingenieria", 1),
+    new Task("Calificar Laboratorio 2", 4),
+    new Task("Preparar la Siguiente Clase", 2),
+    new Task("Definir Laboratorio 3", 3),
+    new Task("Inscribirse a Capacitacion General", 1)
+];
+
+tasks.forEach(task => myMinHeap.insert(task));
+
+//TAREAS CON MENOR PRIORIDAD
+console.log("\n\nTAREAS CON MAS PRIORIDAD:");
+while (!myMinHeap.isEmpty()) {
+    let task = myMinHeap.getMin();
+    console.log(`${task.name} - Prioridad: ${task.priority}`);
+}
+
+//TAREAS CON MAYOR PRIORIDAD
+let remainingTasks: Task[] = [];
+let remainingHeap = new MinHeap(7);
+tasks.forEach(task => remainingHeap.insert(task));
+
+//IMPRIMIR
+console.log("\n\nTAREAS CON MENOS PRIORIDAD:");
+while (!remainingHeap.isEmpty()) {
+    let task = remainingHeap.getMin();
+    remainingTasks.push(task);
+}
+remainingTasks.reverse();  
+remainingTasks.forEach(task => {
+    console.log(`${task.name} - Prioridad: ${task.priority}`);
+});
+
+//TAREAS RESTANTES
+console.log("\n\nTAREAS RESTANTES PENDIENTES:");
+remainingTasks.forEach(task => {
+    console.log(`${task.name} - Prioridad: ${task.priority}`);
+});
+

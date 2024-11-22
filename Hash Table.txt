@@ -1,0 +1,140 @@
+class Producto {
+    private codigo: string;
+    private nombre: string;
+    private precioCosto: number;
+    private precioVenta: number;
+
+    constructor(codigo: string, nombre: string, precioCosto: number, precioVenta: number) {
+        this.codigo = codigo;
+        this.nombre = nombre;
+        this.precioCosto = precioCosto;
+        this.precioVenta = precioVenta;
+    }
+
+    public getCodigo(): string {
+        return this.codigo;
+    }
+
+    public toString(): string {
+        return `Codigo: ${this.codigo}, Nombre: ${this.nombre}, Precio Costo: ${this.precioCosto}, Precio Venta: ${this.precioVenta}`;
+    }
+}
+
+class Nodo {
+    producto: Producto;
+    next: Nodo | null;
+
+    constructor(producto: Producto) {
+        this.producto = producto;
+        this.next = null;
+    }
+}
+
+class ListaEnlazada {
+    head: Nodo | null;
+
+    constructor() {
+        this.head = null;
+    }
+
+    public insert(producto: Producto): void {
+        const nuevoNodo = new Nodo(producto);
+        if (this.head === null) {
+            this.head = nuevoNodo;
+        } else {
+            let current = this.head;
+            while (current.next !== null) {
+                current = current.next;
+            }
+            current.next = nuevoNodo;
+        }
+    }
+
+    public search(codigo: string): Producto | null {
+        let current = this.head;
+        while (current !== null) {
+            if (current.producto.getCodigo() === codigo) {
+                return current.producto;
+            }
+            current = current.next;
+        }
+        return null;
+    }
+
+    public getProductos(): string[] {
+        const productos: string[] = [];
+        let current = this.head;
+        while (current !== null) {
+            productos.push(current.producto.toString());
+            current = current.next;
+        }
+        return productos;
+    }
+}
+
+class HashTable {
+    private size: number;
+    private data: (ListaEnlazada | null)[];
+
+    constructor() {
+        this.size = 10;
+        // Inicializamos `data` manualmente con `null` en cada posición para evitar `.fill()`
+        this.data = [];
+        for (let i = 0; i < this.size; i++) {
+            this.data.push(null);
+        }
+    }
+
+    private hash(codigo: string): number {
+        let hash = 0;
+        for (let i = 0; i < codigo.length; i++) {
+            hash += codigo.charCodeAt(i);
+        }
+        return hash % this.size;
+    }
+
+    public insertProducto(producto: Producto): void {
+        const index: number = this.hash(producto.getCodigo());
+        if (this.data[index] === null) {
+            this.data[index] = new ListaEnlazada();
+        }
+        this.data[index]!.insert(producto);
+    }
+
+    public searchProducto(codigo: string): Producto | null {
+        const index: number = this.hash(codigo);
+        if (this.data[index] !== null) {
+            return this.data[index]!.search(codigo);
+        }
+        return null;
+    }
+
+    public printProductos(): void {
+        let productoNumero = 1;
+        this.data.forEach(slot => {
+            if (slot !== null) {
+                const productos = slot.getProductos();
+                productos.forEach(producto => {
+                    console.log(`Producto No. ${productoNumero}: ${producto}`);
+                    productoNumero++;
+                });
+            }
+        });
+    }
+}
+
+// Prueba de la tabla hash
+const tablaHash = new HashTable();
+const productos: Producto[] = [
+    new Producto("P001", "Pepto-Bismol", 50, 65),
+    new Producto("P002", "Aspirina", 15, 20),
+    new Producto("P003", "Paracetamol", 10, 15),
+    new Producto("P004", "Ibuprofeno", 30, 40),
+    new Producto("P005", "Omeprazol", 45, 60)
+];
+
+productos.forEach(producto => {
+    tablaHash.insertProducto(producto);
+});
+
+tablaHash.printProductos();

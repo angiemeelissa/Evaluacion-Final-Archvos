@@ -1,0 +1,178 @@
+class Task {
+    private name: string;
+    private priority: number;
+
+    constructor(name: string, priority: number) {
+        this.name = name;
+        this.priority = priority;
+    }
+
+    public getPriority(): number {
+        return this.priority;
+    }
+
+    public getName(): string {
+        return this.name;
+    }
+
+    public show(): string {
+        return "Tarea: " + this.name + ", Prioridad: " + this.priority;
+    }
+}
+
+class MinHeap {
+    private heap: Task[];
+    private n: number;
+
+    constructor(size: number) {
+        this.heap = new Array(size + 1);
+        this.n = 0;
+    }
+
+    public isEmpty(): boolean {
+        return this.n === 0;
+    }
+
+    public getQuantity(): number {
+        return this.n;
+    }
+
+    public insert(value: Task): void {
+        if (this.n === this.heap.length - 1) {
+            this.resize(2 * this.heap.length);
+        }
+        this.n++;
+        this.heap[this.n] = value;
+        this.swap(this.n);
+    }
+
+    //INTERCAMBIAR ELEMENTOS EN EL HEAP
+    private swap(i: number): void {
+        let father: number = Math.floor(i / 2);
+        while (i > 1 && this.heap[father].getPriority() > this.heap[i].getPriority()) {
+            let temp: Task = this.heap[father];
+            this.heap[father] = this.heap[i];
+            this.heap[i] = temp;
+            i = father;
+            father = Math.floor(i / 2);
+        }
+    }
+
+    //REDIMENSIONAR EL HEAP
+    private resize(newSize: number): void {
+        let newHeap: Task[] = new Array(newSize);
+        for (let i = 1; i < this.heap.length; i++) {
+            newHeap[i] = this.heap[i];
+        }
+        this.heap = newHeap;
+    }
+
+    public doNext(): string {
+        if (this.isEmpty()) return "No hay Tareas Pendientes";
+
+        let max: Task = this.heap[1];
+        this.heap[1] = this.heap[this.n];
+        this.heap[this.n] = new Task("Completada", 0);
+        this.n--;
+        this.sink(1);
+        return "Realizando " + max.show();
+    }
+
+    public markAsCompleted(taskName: string): string {
+        for (let i = 1; i <= this.n; i++) {
+            if (this.heap[i].getName() === taskName) {
+                this.heap[i] = this.heap[this.n];
+                this.n--;
+                this.sink(i);
+                return `Tarea "${taskName}" Marcada como Completada`;
+            }
+        }
+        return `La Tarea "${taskName}" no fue Encontrada`;
+    }
+
+    public deleteTask(taskName: string): string {
+        for (let i = 1; i <= this.n; i++) {
+            if (this.heap[i].getName() === taskName) {
+                this.heap[i] = this.heap[this.n];
+                this.n--;
+                this.sink(i);
+                return `Tarea "${taskName}" Eliminada Correctamente`;
+            }
+        }
+        return `La Tarea "${taskName}" NO fue Encontrada`;
+    }
+
+    public showAll(): void {
+        console.log("Monticulo: ");
+        for (let i = 1; i <= this.n; i++) {
+            console.log(this.heap[i].show());
+        }
+        console.log("\nAngie Melissa Santiago Rodriguez - 1555123");
+    }
+
+    //RE ORGANIZAR EL HESP
+    private sink(i: number): void {
+        while (2 * i <= this.n) {
+            let j: number = 2 * i;
+            if (j < this.n && this.heap[j].getPriority() > this.heap[j + 1].getPriority()) j++;
+            if (this.heap[i].getPriority() <= this.heap[j].getPriority()) break;
+            let temp: Task = this.heap[i];
+            this.heap[i] = this.heap[j];
+            this.heap[j] = temp;
+            i = j;
+        }
+    }
+
+    //TAREAS CON MENOS PRIORIDAD
+    public getLowestPriorityTask(): string {
+        if (this.isEmpty()) return "No hay Tareas Pendientes";
+
+        let lowestPriorityTask = this.heap[1];
+        for (let i = 2; i <= this.n; i++) {
+            if (this.heap[i].getPriority() > lowestPriorityTask.getPriority()) {
+                lowestPriorityTask = this.heap[i];
+            }
+        }
+        return "La tarea con menor prioridad es: " + lowestPriorityTask.show();
+    }
+}
+
+let minHeap: MinHeap = new MinHeap(7);
+
+//INGRESAR TAREAS POR PRIORIDAD
+function addTask(name: string, priority: number) {
+    let task = new Task(name, priority);
+    minHeap.insert(task);
+    console.log(`Tarea "${name}" con Prioridad ${priority}`);
+}
+
+//TAREAS
+console.log("\nTAREAS A REALIZAR")
+addTask("Calificar Laboratorio 1", 1);
+addTask("Calificar Laboratorio 2", 4);
+addTask("Reunirse con Facultad de Ingenieria", 1);
+addTask("Preparar la Siguiente Clase", 2);
+addTask("Definir Laboratorio 3", 3);
+addTask("Inscribirse a Capacitacion General", 1);
+
+//TAREA CON MAYOR PRORIDAD
+console.log("\nLA TAREA CON MAYOR PRIORIDAD ES:")
+console.log(minHeap.doNext());
+
+// TAREA CON MENOR PRIORIDAD
+console.log("\nLA TAREA CON MENOR PRIORIDAD ES:");
+console.log(minHeap.getLowestPriorityTask());
+
+//TAREA COMPLETA
+/*console.log("\nTAREAS COMPLETADAS")
+console.log(minHeap.markAsCompleted("Definir Laboratorio 3"));*/
+
+//ELIMINAR UNA TAREA
+/*console.log("\nTAREAS ELIMINADAS")
+console.log(minHeap.deleteTask("Inscribirse a Capacitacion General"));*/
+
+// MOSTRAR TODAS LAS TAREAS SIN MODIFICAR EL MONTICULO
+/*console.log("\nTODAS LAS TAREAS PENDIENTES:");
+minHeap.showAll();*/
+
+
